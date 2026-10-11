@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A private, remote-friendly chat interface for Ollama on NSCC." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23c6f36b'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='serif' font-size='34' fill='%23151b0c'%3EO%3C/text%3E%3C/svg%3E" />
+    <title>NSCC Ollama Desk</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand-row">
+          <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div>
+            <p class="eyebrow">NSCC COMPUTE</p>
+            <h1>Ollama Desk</h1>
+          </div>
+        </div>
+
+        <button class="new-chat" id="newChatButton" type="button">
+          <span aria-hidden="true">＋</span> New conversation
+        </button>
+
+        <div class="sidebar-section">
+          <label class="section-label" for="modelSelect">Local model</label>
+          <div class="select-wrap">
+            <select id="modelSelect" aria-describedby="modelMeta">
+              <option value="">Finding local models…</option>
+            </select>
+          </div>
+          <p class="model-meta" id="modelMeta">Connecting to Ollama</p>
+        </div>
+
+        <div class="sidebar-section grow">
+          <p class="section-label">Conversations</p>
+          <div class="history-list" id="historyList"></div>
+        </div>
+
+        <div class="connection-card">
+          <span class="status-dot" id="statusDot"></span>
+          <div>
+            <strong id="connectionLabel">Checking Ollama</strong>
+            <span id="connectionDetail">Local inference service</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <button class="icon-button mobile-only" id="menuButton" aria-label="Open navigation">☰</button>
+          <div class="topbar-title">
+            <span id="activeModel">No model selected</span>
+            <span class="private-pill">Private workspace</span>
+          </div>
+          <button class="icon-button" id="settingsButton" aria-label="Open connection settings">⚙</button>
+        </header>
+
+        <section class="chat-scroll" id="chatScroll" aria-live="polite">
+          <div class="welcome" id="welcome">
+            <div class="welcome-orbit" aria-hidden="true">
+              <div class="core">O</div>
+              <i></i><i></i><i></i>
+            </div>
+            <p class="eyebrow">LOCAL INTELLIGENCE</p>
+            <h2>Your NSCC models,<br />within reach.</h2>
+            <p class="welcome-copy">Chat with models already installed on this compute node. Add documents for context or images for vision-capable models.</p>
+            <div class="suggestions">
+              <button type="button" data-prompt="Summarize the key ideas in the document I attach.">Summarize a document <span>↗</span></button>
+              <button type="button" data-prompt="Describe this image in detail and identify anything unusual.">Analyze an image <span>↗</span></button>
+              <button type="button" data-prompt="Help me reason through a technical problem step by step.">Solve a technical problem <span>↗</span></button>
+            </div>
+          </div>
+          <div class="messages" id="messages"></div>
+        </section>
+
+        <section class="composer-area">
+          <div class="attachment-tray" id="attachmentTray" hidden></div>
+          <form class="composer" id="chatForm">
+            <label class="attach-button" for="fileInput" title="Attach a document or image" aria-label="Attach a document or image">＋</label>
+            <input id="fileInput" type="file" multiple accept="image/*,.pdf,.docx,.txt,.md,.csv,.json,.log,.py,.js,.ts,.html,.css" hidden />
+            <textarea id="promptInput" rows="1" placeholder="Message your local model…" aria-label="Chat message"></textarea>
+            <button class="send-button" id="sendButton" type="submit" aria-label="Send message">↑</button>
+          </form>
+          <p class="composer-note">Inference runs on your NSCC node. Verify important results.</p>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="settingsDialog">
+      <form method="dialog" class="settings-panel">
+        <button class="dialog-close" value="cancel" aria-label="Close">×</button>
+        <p class="eyebrow">CONNECTION</p>
+        <h2>Remote access</h2>
+        <p>When the server uses an access token, enter it here. It stays only in this browser session.</p>
+        <label for="tokenInput">Access token</label>
+        <input id="tokenInput" type="password" autocomplete="off" placeholder="Optional bearer token" />
+        <div class="dialog-actions">
+          <button value="cancel" class="secondary-button">Cancel</button>
+          <button value="default" id="saveTokenButton" class="primary-button">Save & reconnect</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" hidden></div>
+    <script src="/static/app.js" type="module"></script>
+  </body>
+</html>
