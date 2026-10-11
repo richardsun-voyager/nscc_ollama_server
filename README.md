@@ -31,26 +31,52 @@ If `ollama serve` reports that the port is already in use, Ollama is probably al
 curl http://127.0.0.1:11434/api/tags
 ```
 
-## Connect remotely (recommended)
+## Connect remotely through the NSCC login node
 
-Keep `APP_HOST=127.0.0.1`. From your laptop, forward a local port through the NSCC login host to the node running the app:
+When the SSH tunnel terminates on the login node and forwards to a separate compute node, the web service must listen on the compute node's network interface. Generate a strong token:
+
+```bash
+python3 -c 'import secrets; print(secrets.token_urlsafe(32))'
+```
+
+Copy the generated value into `.env` on the compute node:
+
+```bash
+APP_HOST=0.0.0.0
+APP_PORT=9955
+OLLAMA_WEB_TOKEN=<paste-the-generated-token-here>
+```
+
+`run.sh` intentionally refuses to bind to `0.0.0.0` without a token. Restart the service after changing `.env`:
+
+```bash
+./run.sh
+```
+
+The startup message should report `http://0.0.0.0:9955`. From your laptop, forward the port through the NSCC login host:
 
 ```bash
 ssh -N -L 9955:COMPUTE_NODE:9955 YOUR_USER@NSCC_LOGIN_HOST
 ```
 
-Then open [http://127.0.0.1:9955](http://127.0.0.1:9955). Replace `COMPUTE_NODE`, `YOUR_USER`, and `NSCC_LOGIN_HOST` with the values for your allocation. If NSCC requires a jump host or an active scheduler allocation, follow the centre's current SSH tunnelling guidance.
+Then open [http://127.0.0.1:9955](http://127.0.0.1:9955), click the gear icon, and enter the same `OLLAMA_WEB_TOKEN`. Replace `COMPUTE_NODE`, `YOUR_USER`, and `NSCC_LOGIN_HOST` with the values for your allocation. You can obtain the compute-node name by running `hostname` in the allocation.
 
-### Direct network exposure
+### Loopback-only alternative
 
-SSH forwarding is safer because the web service remains on loopback. If your NSCC environment requires binding to the node network, set a strong token and bind explicitly:
+If NSCC permits SSH directly into the allocated compute node through a jump host, the service can remain on loopback:
 
 ```bash
-APP_HOST=0.0.0.0
-OLLAMA_WEB_TOKEN=<a-long-random-secret>
+APP_HOST=127.0.0.1
+APP_PORT=9955
 ```
 
-The browser's settings button accepts the same token. Use an HTTPS reverse proxy when traffic leaves a trusted network; the app itself does not terminate TLS.
+From the laptop, connect directly to the compute node through the login node:
+
+```bash
+ssh -J YOUR_USER@NSCC_LOGIN_HOST -N -L 9955:127.0.0.1:9955 YOUR_USER@COMPUTE_NODE
+```
+
+This alternative does not require a token because the service is reachable only through the tunnel. If port `9955` is exposed without SSH forwarding, use an HTTPS reverse proxy; the app itself does not terminate TLS.
 
 ## Models and attachments
 
@@ -67,7 +93,7 @@ The browser's settings button accepts the same token. Use an HTTPS reverse proxy
 | `OLLAMA_BASE_URL` | `http://127.0.0.1:11434` | Ollama API address |
 | `APP_HOST` | `127.0.0.1` | Web server bind address |
 | `APP_PORT` | `9955` | Web server port |
-| `OLLAMA_WEB_TOKEN` | empty | Optional bearer token required by API routes |
+| `OLLAMA_WEB_TOKEN` | empty | Bearer token for API routes; required when `APP_HOST` is not loopback |
 | `MAX_UPLOAD_MB` | `25` | Maximum size per uploaded file |
 | `MAX_DOCUMENT_CHARS` | `200000` | Maximum extracted text per document |
 
